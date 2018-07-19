@@ -1,15 +1,8 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar  7 13:23:48 2018
+Created on Thu Jul 19 09:03:38 2018
 
-@author: ideluna
-
-Script para aplicar Filtros kalman al análisis histórico del IPC en la BMV.
-
-Periodo: Enero 2017 a Diciembre 2017
-
-
+@author: ivand
 """
 
 # Aplicación de KF para el IPC
@@ -21,38 +14,50 @@ Periodo: Enero 2017 a Diciembre 2017
 ##############################################################################
     
 from pandas_datareader import data as dr # Lector de datos
-import datetime                     # Manejo de fechas 
-import matplotlib.pyplot as plt     # Graficador
-import numpy as np                  # Análisis númerico
+import pandas as pd                      # Leer archivo CSV
+import datetime                          # Manejo de fechas 
+import matplotlib.pyplot as plt          # Graficador
+import numpy as np                       # Análisis númerico
+
+
 # A partir del 2017 Yahoo cambió su API haciendo más complicado 
 # adquirir datos por medio de librerías como Pandas
-# Una solución temporal es la librería fix_yahoo_finance
+# Una solución temporal es la librería fix_yahoo_finance o también
+# se pueden utilizar los datos históricos bajados de yahoo en formato .csv
 
-import fix_yahoo_finance as yf      
-yf.pdr_override()                   # Reconfigura Pandas para adaptarlo a
-                                    # los nuevos requerimientos de YF
 
 ##############################################################################
 ###                   Importar datos usando Pandas                         ###
 ##############################################################################
 
-# Se crean dos variables para el rango de fecha
-inicio = datetime.datetime(2017,1,1) # Fecha inicial
-fin = datetime.datetime(2017,12,31)  # Fecha final
-    
-# Se crea una variable para la fuente que se utilizará
+# Se utiliza la herramienta read_csv de Pandas para leer el archivo de valores
+# separados por comas.
 
-fuente = 'yahoo'
+ipc = pd.read_csv('ipc5y.csv', parse_dates=['Date'])
 
-# Los servicios de información financiera utilizan tickers o neumónicos para
-# poder catalogar de manera más sencilla los valores o las series de tiempo
-# Para el caso de Yahoo Finance, dicho ticker para el IPC es %5EMXX
+# Este archivo contiene 7 columnas que constan de:
+# índice
+# fecha (Date)
+# valor de apertura (Open)
+# valor más alto  (High)
+# valor más bajo (Low)
+# cierre ajustado (Adj Close)
+# Volumen (Volume)
 
-symbol = '%5EMXX'
+# Se checa que el tipo de variable de las columnas sea el requerido
+ipc.dtypes
 
-# Variable IPC y descarga de datos
+# Se checan los primeros 5 valores de ipc
+ipc.head()
 
-ipc = dr.DataReader(symbol, fuente, inicio, fin)
+# Se reacomodan los valores por fecha
+ipc = ipc.sort_values(by='Date')
+
+# Se especifica la fecha como el índice de ipc
+ipc.set_index('Date',inplace=True)
+
+# Se gráfica el precio de cierre para comprobar que esta todo en orden
+ipc['Close'].plot(figsize=(16,12))
 
 
 ##############################################################################
@@ -73,7 +78,7 @@ ipc = dr.DataReader(symbol, fuente, inicio, fin)
 # en este caso nos interesa la columa 4 de Adjusted CLose
 # y los renglones del 1 al 2700 (todos).
 
-plt.plot(ipc.iloc[1:2700, 4], label='IPC Cierre Ajustado') 
+plt.plot(ipc.iloc[1:1254, 4], label='Adj Close') 
 
 
 # Diferencia logaritmica entre dato t y t-1
@@ -91,8 +96,8 @@ dipc.head()
 plt.plot(dipc)
 
 # Crear vector de precios de cierre ajustados
-ipc_adj = ipc.iloc[1:2700,4]
-dipc_adj = dipc.iloc[1:2700,4]
+ipc_adj = ipc.iloc[1:len(ipc),4]
+dipc_adj = dipc.iloc[1:len(dipc),4]
 
 # Grafico de ipc_adj
 plt.plot(ipc_adj, label = 'IPC Cierre Ajustado')
