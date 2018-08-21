@@ -21,6 +21,7 @@ Periodo: Enero 2017 a Diciembre 2017
 ##############################################################################
     
 from pandas_datareader import data as dr # Lector de datos
+import pandas as pd
 import datetime                     # Manejo de fechas 
 import matplotlib.pyplot as plt     # Graficador
 import numpy as np                  # Análisis númerico
